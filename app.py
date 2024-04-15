@@ -1,4 +1,5 @@
 from flask  import Flask,request,make_response,jsonify,redirect
+from JWT import JWT
 from  ResponceHandler import Responce
 import mysql.connector
 import json
@@ -19,10 +20,29 @@ con = mysql.connector.Connect(
 )
 cur = con.cursor()
 
-@app.route("/api/v1/signin",methods=["POST"])
+@app.route("/api/v1/login",methods=["POST"])
 def login():
     try :
         data={}
+        cookie = request.cookies.get("session")
+        if cookie:
+            decoded_cookie = JWT.decode(cookie)
+            if decoded_cookie["status"] != 1:
+                try :
+                    cur.execute(f"SELECT * FROM users where userid='{decoded_cookie["data"]}'")
+                    row = cur.fetchone()
+                except:
+                    return Responce(401,{},"Error in Fetching cookie data from database")
+                if row:
+                    try:
+                        if row[0] == decoded_cookie["data"]:
+                            return Responce.send(200,{},"Login successfull")
+                        else:
+                            return Responce.send(401,{},"Invalid Cookie")
+                    except:
+                        return Responce.send(500,{},"Error while checking cookie data is valid?")
+                else:
+                    return Responce.send(401,{},"Invalid Cookie")
         try:
             data = json.loads(request.data.decode("utf-8"))
         except:
@@ -38,10 +58,16 @@ def login():
                 cur.execute(f"SELECT * FROM users where username='{username}' and password='{password}'")
                 row = cur.fetchone()
                 try :
-                    if username == row[0] and password == row[1]:
+                    if username == row[1] and password == row[2]:
                         res = make_response("redirect")#redirect(f"{app.config["FRONT_END_URL"]}/")
-                        res.set_cookie("session","testone",httponly=True)
-                        return res
+                        jwt_cookie = JWT.encode({"data":f"{row[0]}"})
+                        if jwt_cookie.get("status") == 0:
+                            res.set_cookie("session",jwt_cookie["data"],httponly=True)
+                            return res
+                        else:
+                            return Responce.send(500,{},"Error in setting Cookie")
+                    else:
+                        return Responce.send(401,{},"username and password is invalid")    
                 except:
                     return Responce.send(401,{},"username and password is invalid")
             else :

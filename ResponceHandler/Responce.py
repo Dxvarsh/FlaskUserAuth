@@ -5,6 +5,6 @@ def send(code,data,message):
         "data":data,
         "message":message
         }
-    res = make_response(jsonify(res),401)
+    res = make_response(jsonify(res),code)
     return res
     
