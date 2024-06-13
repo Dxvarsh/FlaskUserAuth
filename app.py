@@ -45,7 +45,7 @@ def login():
                     return Responce.send(401,{},"Invalid Cookie")
         try:
             data = json.loads(request.data.decode("utf-8"))
-        except:
+        except Exception as e:
             res = Responce.send(402,data,"Erorr While Proccessing Data Please Try again")
             return res
         if data:
