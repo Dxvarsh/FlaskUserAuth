@@ -4,6 +4,7 @@ from datetime import datetime
 from logout import LogOut
 from getuser import GetUser
 from upload import uploadpdf
+from getpdf import GetPdf
 from  ResponceHandler import Responce
 import mysql.connector
 import json
@@ -65,16 +66,15 @@ def login():
             except:
                 return Responce.send(401,{},"username or password is not in body")
             if username and password:
-                cur.execute(f"SELECT * FROM users where username='{username}' and password='{password}'")
+                cur.execute(f'SELECT * FROM users where username="{username}" and password="{password}";')
                 row = cur.fetchone()
                 try :
                     if username == row[1] and password == row[2]:
+                        print("Sending cookie ......")
                         jwt_cookie = JWT.encode({"data":f"{row[0]}"})
                         if jwt_cookie.get("status") == 0:
-                             print("Sending cookie")
-                             res = make_response("")
-                             expiration_date = datetime.today() + datetime.timedelta(days=7)
-                             res.set_cookie("session",jwt_cookie["data"],path='/',expires=expiration_date)
+                             res = Responce.send(200,{},"authenticated")
+                             res.set_cookie("session",jwt_cookie["data"],path='/')
                              return res
                         else:
                             return Responce.send(500,{},"Error in setting Cookie")
@@ -112,15 +112,19 @@ def signup():
                     if row :
                         return Responce.send(409,{},"username or email already used")
                     else:
-                        cur.execute(f"insert into users values('{uuid.uuid4()}','{data["username"]}','{data["password"]}','{data["fullname"]}','{data["email"]}');")
-                        con.commit()
-                    return Responce.send(200,{},"Created successfully")
+                        try:
+                            cur.execute(f"insert into users values('{uuid.uuid4()}','{data["username"]}','{data["password"]}','{data["fullname"]}','{data["email"]}','false');")
+                            con.commit()
+                            return Responce.send(200,{},"Created successfully")
+                        except Exception as e:
+                            return Responce.send(500,{},"server Error")
                 except Exception as e:
                     return Responce.send(500,{},e)
         else :
             return Responce.send(405,{},"body should contain username,password,fullname,email")
     else:
         return Responce.send(401,{},"No data provided please provide nessery data")
+
 @app.route("/api/v1/upload",methods=["POST"])
 def upload():
     return uploadpdf.UploadPdf(app,cur,con)
@@ -129,8 +133,12 @@ def upload():
 def getuser():
     return GetUser.process(cur)
 
-@app.route("/api/v1/logout")
+@app.route("/api/v1/logout",methods=["GET"])
 def logout():
     return LogOut.process()
 
-app.run(host="127.0.0.1",port=5000,debug=True)
+@app.route("/api/v1/getpdf",methods=["GET"])
+def getpdf():
+    return GetPdf.process(cur)
+
+app.run(host="0.0.0.0",port=5000,debug=True)

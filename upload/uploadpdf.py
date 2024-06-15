@@ -8,7 +8,7 @@ sem1=[""]
 sem2=[""]
 sem3=[""]
 sem4=[""]
-sem5=[""]
+sem5=["cc-302"]
 sem6=[""]
 def UploadPdf(app,cur,con):
     try:
@@ -76,7 +76,8 @@ def UploadPdf(app,cur,con):
                 pass
             file.save(os.path.join(app.config['pdf'], filename))
             try:
-                cur.execute(f"insert into pdfs values('{uuid.uuid1(7)}','{userObject["title"]}','{userObject["sub"]}','{userObject["sem"]}','{userObject["userid"]}','{date.today()}','{filename}');")
+                datetoday = f'{date.today()}'
+                cur.execute(f"insert into pdfs values('{uuid.uuid1(7)}','{userObject["title"]}','{userObject["sub"]}','{userObject["sem"]}','{userObject["userid"]}','{datetoday}','{filename}');")
                 con.commit()
             except Exception as e:
                 print(e)
