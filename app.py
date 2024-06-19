@@ -95,7 +95,10 @@ def login():
 def signup():
     data = {}
     if request.data:
-        data = json.loads(request.data.decode("utf-8"))
+        try:
+            data = json.loads(request.data.decode("utf-8"))
+        except Exception as e:
+            print(e)
         if data.get("username") is not None and data.get("fullname") is not None and data.get("password") is not None and data.get("email") is not None:
             if(len(data["username"]) < 5):
                 return Responce.send(401,{},"username is Too short")
