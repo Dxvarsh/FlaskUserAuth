@@ -35,12 +35,16 @@ def login():
         try:
             cookie = request.cookies.get("session")
             if cookie:
-                decoded_cookie = JWT.decode(cookie)
+                try:
+                    decoded_cookie = JWT.decode(cookie)
+                except Exception as e:
+                    print(e)
                 if decoded_cookie["status"] != 1:
                     try :
                         cur.execute(f"SELECT * FROM users where userid='{decoded_cookie["data"]}'")
                         row = cur.fetchone()
-                    except:
+                    except Exception as e:
+                        print(e)
                         return Responce(401,{},"Error in Fetching cookie data from database")
                     if row:
                         try:
@@ -66,12 +70,19 @@ def login():
             except:
                 return Responce.send(401,{},"username or password is not in body")
             if username and password:
-                cur.execute(f'SELECT * FROM users where username="{username}" and password="{password}";')
-                row = cur.fetchone()
+                try:
+                    cur.execute(f'SELECT * FROM users where username="{username}" and password="{password}";')
+                    row = cur.fetchone()
+                except Exception as e:
+                    print(e)
                 try :
                     if username == row[1] and password == row[2]:
+                        print(f"{row}")
                         print("Sending cookie ......")
-                        jwt_cookie = JWT.encode({"data":f"{row[0]}"})
+                        try:
+                            jwt_cookie = JWT.encode({"data":f"{row[0]}"})
+                        except Exception as e:
+                            print(e)
                         if jwt_cookie.get("status") == 0:
                              res = Responce.send(200,{},"authenticated")
                              res.set_cookie("session",jwt_cookie["data"],path='/')
@@ -79,8 +90,10 @@ def login():
                         else:
                             return Responce.send(500,{},"Error in setting Cookie")
                     else:
+                        print(f"{row}")
                         return Responce.send(401,{},"username and password is invalid")    
                 except:
+                    print(f"{row}")
                     return Responce.send(401,{},"username and password is invalid")
             else :
                 return "Username or Password should not be Empty"
