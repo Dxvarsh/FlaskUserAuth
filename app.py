@@ -101,7 +101,8 @@ def login():
             res = make_response("Error while processing data")
             res.status_code = "401"
             return res
-    except:
+    except Exception as e:
+        print(e)
         return Responce.send(500,{},'Ohh. Server in Truble')
     
 @app.route("/api/v1/signup",methods=["POST"])
