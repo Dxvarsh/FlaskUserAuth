@@ -39,13 +39,13 @@ def login():
                     decoded_cookie = JWT.decode(cookie)
                 except Exception as e:
                     print(e)
-                if decoded_cookie["status"] != 1:
+                if decoded_cookie:
                     try :
                         cur.execute(f"SELECT * FROM users where userid='{decoded_cookie["data"]}'")
                         row = cur.fetchone()
                     except Exception as e:
                         print(e)
-                        return Responce(401,{},"Error in Fetching cookie data from database")
+                        return Responce(401,{},"invalid user")
                     if row:
                         try:
                             if row[0] == decoded_cookie["data"]:
@@ -78,21 +78,22 @@ def login():
                 try :
                     if username == row[1] and password == row[2]:
                         print(f"{row}")
-                        print("Sending cookie ......")
                         try:
-                            jwt_cookie = JWT.encode({"data":f"{row[0]}"})
+                            payload = {"data":row[0]}
+                            jwt_cookie = JWT.encode(payload)
                         except Exception as e:
-                            print(e)
-                        if jwt_cookie.get("status") == 0:
-                             res = Responce.send(200,{},"authenticated")
-                             res.set_cookie("session",jwt_cookie["data"],path='/')
-                             return res
+                            print("Jwt Error:",e)
+                        if jwt_cookie:                          
+                            res = Responce.send(200,{},"Authenticated Successfully")
+                            res.set_cookie('session',jwt_cookie) 
+                            return res
                         else:
                             return Responce.send(500,{},"Error in setting Cookie")
                     else:
                         print(f"{row}")
                         return Responce.send(401,{},"username and password is invalid")    
-                except:
+                except Exception as e:
+                    print("eroor :", e)
                     print(f"{row}")
                     return Responce.send(401,{},"username and password is invalid")
             else :

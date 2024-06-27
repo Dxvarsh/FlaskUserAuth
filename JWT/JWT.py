@@ -2,16 +2,15 @@ import jwt
 secret_key = "thisismysecretkeywhichissettojwt"
 def encode(payload):
     try:
-        jwt_cookie = jwt.encode(payload,secret_key)
-        return {"status":0,"data":f"{jwt_cookie}"}
-    except:
-        print(f"Error in encoding cookie : {jwt_cookie}")
-        return {"status":1,"data":""}
-
+        encoded_jwt = jwt.encode(payload, secret_key, algorithm='HS256')
+        return encoded_jwt
+    except Exception as e:
+        print("Jwt Encoding Error:",e)
+        return False
 def decode(jwt_cookie):
     try:
-        decoded_cookie = jwt.decode(jwt_cookie,secret_key,algorithms="HS256")
-        return {"status":0,"data":f"{decoded_cookie["data"]}"}
-    except:
-        print(f"Error in decoding cookie : {jwt_cookie} : {decoded_cookie}")
-        return {"status":1,"data":""}
+        decoded_jwt = jwt.decode(jwt_cookie, secret_key, algorithms=['HS256'])
+        return decoded_jwt
+    except Exception as e:
+        print("JWT decoding Error",e)
+        return False

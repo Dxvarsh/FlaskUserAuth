@@ -8,6 +8,10 @@ def send(code,data,message):
             }
     except:
         return make_response({"message":"error while prsing data"},500)
-    res = make_response(jsonify(res),code)
-    return res
+    try:
+        res = make_response(jsonify(res),code)
+        return res
+    except Exception as e:
+        print(e)
+        return False
     
