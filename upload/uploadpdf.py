@@ -11,17 +11,17 @@ sem4=[""]
 sem5=["cc-302"]
 sem6=[""]
 def UploadPdf(app,cur,con):
-    try:
-        cookie = request.cookies.get("session")
-        if cookie:
-            decoded_cookie = JWT.decode(cookie)
-            if decoded_cookie["status"] != 1:
-                pass
-        else:
-            print
-            return Responce(401,{},"Not Authenticated")
-    except:
-        return Responce.send(401,{},"not authenticated")
+    # try:
+    #     cookie = request.cookies.get("session")
+    #     if cookie:
+    #         decoded_cookie = JWT.decode(cookie)
+    #         if decoded_cookie["status"] != 1:
+    #             pass
+    #     else:
+    #         print
+    #         return Responce(401,{},"Not Authenticated")
+    # except:
+    #     return Responce.send(401,{},"not authenticated")
     userObject={}
     if 'pdf' not in request.files:
         return jsonify({'message': 'Not selected pdf'}), 400
