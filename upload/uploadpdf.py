@@ -4,6 +4,7 @@ from datetime import date
 import os
 from JWT import JWT
 from ResponceHandler import Responce
+allowed_filenames = ['pdf']
 sem1=[""]
 sem2=[""]
 sem3=[""]
@@ -11,26 +12,28 @@ sem4=[""]
 sem5=["cc-302"]
 sem6=[""]
 def UploadPdf(app,cur,con):
-    # try:
-    #     cookie = request.cookies.get("session")
-    #     if cookie:
-    #         decoded_cookie = JWT.decode(cookie)
-    #         if decoded_cookie["status"] != 1:
-    #             pass
-    #     else:
-    #         print
-    #         return Responce(401,{},"Not Authenticated")
-    # except:
-    #     return Responce.send(401,{},"not authenticated")
+    try:
+        cookie = request.cookies.get("session")
+        if cookie:
+            decoded_cookie = JWT.decode(cookie)
+            if decoded_cookie:
+                pass
+        else:
+            return Responce(401,{},"Not Authenticated--")
+    except:
+        return Responce.send(401,{},"not authenticated ---")
     userObject={}
     if 'pdf' not in request.files:
         return jsonify({'message': 'Not selected pdf'}), 400
 
     file = request.files['pdf']
+    file_ext = file.filename.split('.')
+    file_ext = file_ext[-1]
     if file.filename == '':
         return jsonify({'message': 'Not selected pdf'}), 400
-
-    filename = f"{uuid.uuid1(5)}.pdf"
+    if file_ext not in allowed_filenames:
+        return Responce.send(402,{},"file type is not valid")
+    filename = f"{uuid.uuid1()}.pdf"
     try:
         userObject["title"] = request.form.get("title")
         userObject["sub"] = request.form.get("subject")

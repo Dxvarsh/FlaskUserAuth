@@ -1,4 +1,5 @@
-from flask  import Flask,request,make_response,jsonify,redirect
+from flask  import Flask,request,make_response,send_file
+import os
 from JWT import JWT
 from datetime import datetime
 from logout import LogOut
@@ -158,5 +159,14 @@ def logout():
 @app.route("/api/v1/getpdf",methods=["GET"])
 def getpdf():
     return GetPdf.process(cur)
+
+@app.route("/api/v1/pdf/<id>",methods=["GET"])
+def pdf(id):
+    fullpath = app.config['pdf']+ '/'+id
+    if os.path.exists(fullpath):
+        return send_file(fullpath)
+    else:
+        return Responce.send(404,{},"file not found")
+    return 
 
 app.run(host="0.0.0.0",port=5000,debug=True)
