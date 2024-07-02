@@ -167,6 +167,5 @@ def pdf(id):
         return send_file(fullpath)
     else:
         return Responce.send(404,{},"file not found")
-    return 
 
 app.run(host="0.0.0.0",port=5000,debug=True)
