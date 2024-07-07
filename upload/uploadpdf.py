@@ -33,7 +33,8 @@ def UploadPdf(app,cur,con):
         return jsonify({'message': 'Not selected pdf'}), 400
     if file_ext not in allowed_filenames:
         return Responce.send(402,{},"file type is not valid")
-    filename = f"{uuid.uuid1()}.pdf"
+    fileid = uuid.uuid4()
+    filename = f"{fileid}.pdf"
     try:
         userObject["title"] = request.form.get("title")
         userObject["sub"] = request.form.get("subject")
@@ -49,39 +50,42 @@ def UploadPdf(app,cur,con):
                     if userObject["sub"] in sem1:
                         pass
                     else:
-                        return Responce.send(402,{},"subject name is not valid")
-                if userObject["sem"]== 2:
+                        return Responce.send(402,{},"subject is not valid")
+                elif userObject["sem"]== 2:
                     if userObject["sub"] in sem2:
                         pass
                     else:
-                        return Responce.send(402,{},"subject name is not valid")
-                if userObject["sem"]== 3:
+                        return Responce.send(402,{},"subject is not valid")
+                elif userObject["sem"]== 3:
                     if userObject["sub"] in sem3:
                         pass
                     else:
-                        return Responce.send(402,{},"subject name is not valid")
-                if userObject["sem"]== 4:
+                        return Responce.send(402,{},"subject is not valid")
+                elif userObject["sem"]== 4:
                     if userObject["sub"] in sem4:
                         pass
                     else:
-                        return Responce.send(402,{},"subject name is not valid")
-                if userObject["sem"]== 5:
+                        return Responce.send(402,{},"subject is not valid")
+                elif userObject["sem"]== 5:
                     if userObject["sub"] in sem5:
                         pass
                     else:
-                        return Responce.send(402,{},"subject name is not valid")
-                if userObject["sem"]== 6:
+                        return Responce.send(402,{},"subject is not valid")
+                elif userObject["sem"]== 6:
                     if userObject["sub"] in sem6:
                         pass
                     else:
-                        return Responce.send(402,{},"subject name is not valid")
-            except:
-                pass
-            file.save(os.path.join(app.config['pdf'], filename))
+                        return Responce.send(402,{},"subject is not valid")
+                elif int(userObject["sem"]) > 6:
+                    return Responce.send(402,{},"subject name is not valid")
+            except Exception as e:
+                print(e)
+                return Responce.send(402,{},"sem name is not valid")
             try:
                 datetoday = f'{date.today()}'
-                cur.execute(f"insert into pdfs values('{uuid.uuid1(7)}','{userObject["title"]}','{userObject["sub"]}','{userObject["sem"]}','{userObject["userid"]}','{datetoday}','{filename}');")
+                cur.execute(f"insert into pdfs values('{fileid}','{userObject["title"]}','{userObject["sub"]}','{userObject["sem"]}','{userObject["userid"]}','{datetoday}','{filename}');")
                 con.commit()
+                file.save(os.path.join(app.config['pdf'], filename))
             except Exception as e:
                 print(e)
                 return Responce.send(500,{},"server Error")

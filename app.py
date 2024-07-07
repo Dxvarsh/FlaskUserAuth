@@ -25,7 +25,8 @@ con = mysql.connector.Connect(
     host = app.config["MYSQL_HOST"],
     user = app.config["MYSQL_USER"],
     password = app.config["MYSQL_PASSWORD"],
-    database = app.config["MYSQL_DB"]
+    database = app.config["MYSQL_DB"],
+    auth_plugin='mysql_native_password'
 )
 cur = con.cursor()
 
@@ -162,10 +163,126 @@ def getpdf():
 
 @app.route("/api/v1/pdf/<id>",methods=["GET"])
 def pdf(id):
-    fullpath = app.config['pdf']+ '/'+id
-    if os.path.exists(fullpath):
-        return send_file(fullpath)
-    else:
-        return Responce.send(404,{},"file not found")
+    id = id.split('.')
+    if id[0] and id[1]== 'pdf':
+        fullpath = app.config['pdf']+ '/'+id[0]+".pdf"
+        if os.path.exists(fullpath):
+            return send_file(fullpath)
+        else:
+            return Responce.send(404,{},"file not found")
 
-app.run(host="0.0.0.0",port=5000,debug=True)
+@app.route("/api/v1/deletepdf/<id>",methods=["GET"])
+def delpdf(id):
+    if id =='':
+        return Responce.send(404,{},"Not Valid Pdf")
+    cookie = request.cookies.get("session")
+    id = id.split(".")[0]
+    if cookie:
+        try:
+            decoded_cookie = JWT.decode(cookie)
+        except Exception as e:
+            print(e)
+            return Responce.send(401,{},"invalid user")
+        if decoded_cookie["data"]:
+            try :
+                print(decoded_cookie["data"])
+                cur.execute(f"select * from users where userid='{decoded_cookie["data"]}';")
+                row = cur.fetchone()
+            except Exception as e:
+                print(e)
+                return Responce.send(401,{},"invalid user")
+            if row:
+                try:
+                    print(f"select * from pdfs where userid='{decoded_cookie["data"]}' and id='{id}';")
+                    cur.execute(f"select * from pdfs where userid='{decoded_cookie["data"]}' and id='{id}';")
+                    row2 = cur.fetchone()
+                except Exception as e:
+                    print(e)
+                    return Responce.send(401,{},"invalid pdf user")
+                try:
+                    if (row and row2) or (row[5] == "true"):
+                        fullpath = app.config['pdf']+id+".pdf"
+                        if os.path.exists(fullpath):
+                            try:
+                                pdfid = id+".pdf"
+                                cur.execute(f"delete from pdfs where pdf_path='{pdfid}';")
+                                con.commit()
+                                os.remove(fullpath)
+                            except Exception as e:
+                                print(e)
+                                return Responce.send(500,{},"Error while deleting file")
+                            return Responce.send(200,{},"Deleted Successfully")
+                        else:
+                            return Responce.send(404,{},"file not found")
+                    else:
+                        return Responce.send(401,{},"Invalid Cookie")
+                except Exception as e:
+                    print("Error"+str(e))
+                    return Responce.send(500,{},"Error while deleting file")
+    else:
+        return Responce.send(401,{},"Not Authenticated")
+@app.route("/api/v1/bookmark/<pdfid>", methods=["GET"])
+def bookmarks(pdfid):
+    if pdfid == "":
+        return Responce.send(422,{},"invalid pdfid")
+    pdfid = pdfid.split(".")[0]
+    cookie = request.cookies.get("session")
+    if cookie:  
+        try:
+            decoded_cookie = JWT.decode(cookie)
+        except Exception as e:
+            print(e)
+            return Responce.send(401,{},"invalid user")
+        try:
+            cur.execute(f"select * from bookmarks where pdf_id='{pdfid}' and userid='{decoded_cookie['data']}';")
+            r = cur.fetchone()
+            if r:
+                return Responce.send(205,{},"alerady Bookmarked") 
+            else:
+                cur.execute(f"insert into bookmarks values('{pdfid}','{decoded_cookie['data']}');")
+                con.commit()
+                return Responce.send(200,{},"Bookmarks updated")
+        except Exception as e:
+            print(e)
+            return Responce.send(500,{},"server Error")
+
+@app.route("/api/v1/bookmarks", methods=["GET"])
+def getbookmarks():
+    cookie = request.cookies.get("session")
+    if cookie:
+        try:
+            decoded_cookie = JWT.decode(cookie)
+        except Exception as e:
+            print(e)
+            return Responce.send(401,{},"invalid user")
+        try:
+            cur.execute(f"select * from bookmarks where userid='{decoded_cookie['data']}';")
+            r = cur.fetchall()
+            rows = []
+            for row in r:
+                rows.append(row[0])
+            pdf_ids = '\',\''.join(map(str,rows))
+            cur.execute(f"select * from pdfs inner join users on pdfs.userid = users.userid where id IN('{pdf_ids}')")
+            r = cur.fetchall()
+            pdf_obj = []
+            for i  in r:
+                obj = {
+                    "title":i[1],
+                    "subject":i[2],
+                    "sem": i[3],
+                    "date": i[5].strftime("%A-%d-%m-%y"),
+                    "path": i[6],
+                    "username":i[8]
+                }
+                pdf_obj.append(obj)
+            if r:
+                return Responce.send(200,pdf_obj,"Bookmarks List")
+            else:
+                return Responce.send(204,{},"No Bookmarks")
+        except Exception as e:
+            print(e)
+            return Responce.send(500,{},"server Error")
+    else:
+        return Responce.send(401,{},"Not Authenticated")
+if __name__ == '__main__':
+    app.run(host="0.0.0.0",port=5000,debug=True)
