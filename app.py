@@ -164,12 +164,16 @@ def getpdf():
 @app.route("/api/v1/pdf/<id>",methods=["GET"])
 def pdf(id):
     id = id.split('.')
-    if id[0] and id[1]== 'pdf':
-        fullpath = app.config['pdf']+ '/'+id[0]+".pdf"
-        if os.path.exists(fullpath):
-            return send_file(fullpath)
-        else:
-            return Responce.send(404,{},"file not found")
+    try:
+        if id[0] and id[1]== 'pdf':
+            fullpath = app.config['pdf']+ '/'+id[0]+".pdf"
+            if os.path.exists(fullpath):
+                return send_file(fullpath)
+            else:
+                return Responce.send(404,{},"file not found")
+    except Exception as e:
+        print(e)
+        return Responce.send(401,{},"invalid file name")
 
 @app.route("/api/v1/deletepdf/<id>",methods=["GET"])
 def delpdf(id):
@@ -284,5 +288,34 @@ def getbookmarks():
             return Responce.send(500,{},"server Error")
     else:
         return Responce.send(401,{},"Not Authenticated")
+    
+@app.route("/api/v1/deletebookmark/<id>",methods=["GET"])
+def DeleteBookmark(id):
+    try:
+        id = id.split(".")[0]
+        cookie = request.cookies.get("session")
+        if cookie:
+            try:
+                decoded_cookie = JWT.decode(cookie)
+            except Exception as e:
+                print(e)
+                return Responce.send(401,{},"invalid user")
+            print(f"delete from bookmarks where pdf_id='{id}' and userid='{decoded_cookie['data']}';")
+            try:
+                cur.execute(f"select * from bookmarks where pdf_id='{id}' and userid='{decoded_cookie['data']}';")
+                r = cur.fetchone()
+                if r :
+                    cur.execute(f"delete from bookmarks where pdf_id='{id}' and userid='{decoded_cookie['data']}';")
+                    con.commit()
+                    return Responce.send(200,{},"Removed Bookmaked")
+                else:
+                    return Responce.send(200,{},"not bookmarked")
+            except Exception as e:
+                print(e)
+                return Responce.send(500,{},"Server Error")
+    except Exception as e:
+        print(e)
+        return Responce.send(500,{},"invalid pdf name ")
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0",port=5000,debug=True)
