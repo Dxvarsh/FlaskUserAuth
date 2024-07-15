@@ -5,12 +5,66 @@ import os
 from JWT import JWT
 from ResponceHandler import Responce
 allowed_filenames = ['pdf']
-sem1=[""]
-sem2=[""]
+sem1=[
+    "sem-1-syllabus", 
+    "DSC-C-BCA-111T", 
+    "DSC-M-BCA-113T", 
+    "MDC-BCA-114 T", 
+    "SEC-OOS-116", 
+    "SEC-OOS-116", 
+    "VAC-117", 
+    "DSC-C-BCA-111T-old-paper", 
+    "DSC-M-BCA-113T-old-paper", 
+    "MDC-BCA-114 T-old-paper", 
+    "AEC-ENG-115-old-paper", 
+    "SEC-OOS-116-old-paper", 
+    "VAC-117-old-paper", 
+    "DSC-C-BCA-112P", 
+    "DSC-M-BCA-113P",
+    "MDC-BCA-114P"
+]
+
+sem2=[
+    "DSC-C-BCA-121 T",
+    "SEC-BCA-126",
+    "IDC-BCA-124 T",
+    "DSC-M-BCA-123 T",
+    "DSC-M-BCA-123 P",
+    "DSC-C-BCA-122 P",
+    "IDC-BCA-124 P",
+    "DSC-C-BCA-121 T-old-paper",
+    "SEC-BCA-126-old-T-old-paper",
+    "IDC-BCA-124 T-old-paper",
+    "DSC-M-BCA-123 T-old-paper"
+]
 sem3=[""]
 sem4=[""]
-sem5=["cc-302"]
-sem6=[""]
+sem5=[
+    "sem-5-syllabus"
+    "cc-301",
+    "cc-302",
+    "cc-303",
+    "sec-301",
+    "cc-304",
+    "cc-305",
+    "cc-301-old-paper",
+    "cc-302-old-paper",
+    "cc-303-old-paper",
+    "sec-301-c-old-paper"
+]
+sem6=[
+    "sem-6-syllabus",
+    "CC-307",
+    "CC-308",
+    "CC-309",
+    "SEC-302 (C)",
+    "cc-310",
+    "cc-311",
+    "CC-307-oldpaper",
+    "CC-308-oldpaper",
+    "CC-309-oldpaper",
+    "SEC-302 (C)-oldpaper"
+]
 def UploadPdf(app,cur,con):
     try:
         cookie = request.cookies.get("session")
